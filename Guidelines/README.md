@@ -1,6 +1,6 @@
 # Guidelines
 
-This folder contains guidelines that walk you through common tasks needed to complete the exercises.
+This folder contains guidelines that help you get started with what you need for the IBM Cloud workshop.
 
 ## FAQs: Node-RED
 - [How can I start Node-RED on my local workstation?](./node-red-workstation)
