@@ -1,0 +1,544 @@
+[
+    {
+        "id": "b530ae1c.57e2d",
+        "type": "tab",
+        "label": "Global",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "a2adfa84.fd81b8",
+        "type": "tab",
+        "label": "Visual Recognition",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "dae1619b.1d9c6",
+        "type": "tab",
+        "label": "Tone Analyzer",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "afb7a1b0.4655a",
+        "type": "tab",
+        "label": "Translator",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "1f5a68d8.21aaa7",
+        "type": "http response",
+        "z": "a2adfa84.fd81b8",
+        "name": "Send Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 660,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "a3034baa.570ff8",
+        "type": "template",
+        "z": "a2adfa84.fd81b8",
+        "name": "Prepare HTML Markup",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <title>Visual Recognition</title>\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"https://unpkg.com/carbon-components/css/carbon-components.min.css\" />\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\">\n\n    <style type=\"text/css\">\n    </style>\n  </head>\n  <body>\n    <div id='header'>\n        <h1>Visual Recognition</h1>\n        <h3>Instructions</h3>\n        <ol class=\"bx--list--unordered\">\n            <li class=\"bx--list__item\">Enable your camera</li>\n            <li class=\"bx--list__item\">Test Face or Object detection</li>\n        </ol>\n    </div>      \n    <br></br>\n    <button id=\"button-classify-objects\" class=\"bx--btn bx--btn--primary\" type=\"button\">\n        Classify Objects\n    </button>   \n    <button disabled id=\"button-detect-faces\" class=\"bx--btn bx--btn--secondary\" type=\"button\">\n     Detect Faces\n    </button>\n\n    <div class=\"main flex\">\n      <div id=\"video-container\" class=\"layout_3\">\n        <h3>Video</h3>\n        <video width=\"400\" id=\"video-element\" autoplay></video>\n      </div>\n      <div id=\"image-container\" class=\"layout_3\">\n        <h3>Snapshot</h3>\n        <img width=\"400\" id=\"image-element\" src=\"\" />\n      </div>      \n      <div id=\"result-container\" class=\"layout_3\">\n          <h3>Result</h3>\n          <pre id=\"result_pre\" class=\"code_snippet\"></pre>\n      </div>\n    </div>\n    \n    <canvas style=\"display:none;\"></canvas>\n\n    <script>\n      const img = document.querySelector(\"#image-element\");\n      const video = document.querySelector(\"#video-element\");\n      const canvas = document.createElement(\"canvas\");\n\n      function startVideo() {\n        navigator.mediaDevices\n          .getUserMedia({\n            video: true\n          })\n          .then(stream => {\n            console.log(\"Video started.\");\n            video.srcObject = stream;\n          })\n          .catch(err => {\n            console.log(\"Failed to start video.\");\n          });\n      }\n\n      function displayResult(data) {\n        document.getElementById(\"result_pre\").innerHTML = `${data}`;\n      }\n\n      function startAnalysis(mode) {\n        canvas.width = video.videoWidth;\n        canvas.height = video.videoHeight;\n        canvas.getContext(\"2d\").drawImage(video, 0, 0);\n        img.src = canvas.toDataURL(\"image/webp\");\n\n        const imageBlobPromise = new Promise((resolve, reject) => {\n          canvas.toBlob(blob => {\n            resolve(blob);\n          });\n        });\n\n        displayResult(\"Analyzing...\");\n\n        imageBlobPromise\n          .then(imageBlob => {\n            return fetch(`/api/visual-recognition?mode=${mode}`, {\n              method: \"POST\",\n              body: imageBlob\n            });\n          })\n          .then(response => response.json())\n          .then(responseJson => {\n            displayResult(`<pre>${JSON.stringify(responseJson, null, 4)}</pre>`);\n          })\n          .catch(error => {\n            displayResult(\"Failed to analyze\");\n            console.error(\"Error:\", error);\n          });\n      }\n\n      // register click handlers\n      document.getElementById(\"button-classify-objects\").onclick = function() {\n        startAnalysis(\"classify\");\n      };\n\n      document.getElementById(\"button-detect-faces\").onclick = function() {\n        startAnalysis(\"faces\");\n      };\n\n      // turn on camera\n      startVideo();\n    </script>\n  </body>\n</html>\n",
+        "output": "str",
+        "x": 413,
+        "y": 60,
+        "wires": [
+            [
+                "1f5a68d8.21aaa7"
+            ]
+        ]
+    },
+    {
+        "id": "74448190.c7b55",
+        "type": "http in",
+        "z": "a2adfa84.fd81b8",
+        "name": "",
+        "url": "/ui/visual-recognition",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 146,
+        "y": 60,
+        "wires": [
+            [
+                "a3034baa.570ff8"
+            ]
+        ]
+    },
+    {
+        "id": "4bbf653a.a5ca0c",
+        "type": "http in",
+        "z": "a2adfa84.fd81b8",
+        "name": "",
+        "url": "/api/visual-recognition",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 156,
+        "y": 120,
+        "wires": [
+            [
+                "5465c21f.044a1c"
+            ]
+        ]
+    },
+    {
+        "id": "3e0e3e04.ad7c42",
+        "type": "http response",
+        "z": "a2adfa84.fd81b8",
+        "name": "Send Response",
+        "statusCode": "200",
+        "headers": {},
+        "x": 1110,
+        "y": 121,
+        "wires": []
+    },
+    {
+        "id": "3bd51c9d.8d25c4",
+        "type": "visual-recognition-v3",
+        "z": "a2adfa84.fd81b8",
+        "name": "Visual Recognition",
+        "vr-service-endpoint": "https://gateway.watsonplatform.net/visual-recognition/api",
+        "image-feature": "detectFaces",
+        "lang": "en",
+        "x": 666,
+        "y": 120,
+        "wires": [
+            [
+                "609ca4cb.2e6cbc"
+            ]
+        ]
+    },
+    {
+        "id": "609ca4cb.2e6cbc",
+        "type": "function",
+        "z": "a2adfa84.fd81b8",
+        "name": "Prepare Response",
+        "func": "msg.payload = msg.result;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 902,
+        "y": 120,
+        "wires": [
+            [
+                "3e0e3e04.ad7c42"
+            ]
+        ]
+    },
+    {
+        "id": "5465c21f.044a1c",
+        "type": "function",
+        "z": "a2adfa84.fd81b8",
+        "name": "Prepare Request",
+        "func": "msg.params = {\n    \"detect_mode\": msg.req.query[\"mode\"]\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 400.5,
+        "y": 120,
+        "wires": [
+            [
+                "3bd51c9d.8d25c4"
+            ]
+        ]
+    },
+    {
+        "id": "44a878e1.5d6038",
+        "type": "http in",
+        "z": "dae1619b.1d9c6",
+        "name": "",
+        "url": "/api/tone-analyzer",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "2feccc7f.131114"
+            ]
+        ]
+    },
+    {
+        "id": "2feccc7f.131114",
+        "type": "function",
+        "z": "dae1619b.1d9c6",
+        "name": "Prepare Request",
+        "func": "msg.payload = msg.req.body.text;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 404.5,
+        "y": 120,
+        "wires": [
+            [
+                "729d1d56.f6fe54"
+            ]
+        ]
+    },
+    {
+        "id": "892a6fc5.54b37",
+        "type": "function",
+        "z": "dae1619b.1d9c6",
+        "name": "Prepare Response",
+        "func": "msg.payload = msg.response;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 850,
+        "y": 120,
+        "wires": [
+            [
+                "5083d3ed.39c24c"
+            ]
+        ]
+    },
+    {
+        "id": "5083d3ed.39c24c",
+        "type": "http response",
+        "z": "dae1619b.1d9c6",
+        "name": "Send Response",
+        "statusCode": "200",
+        "headers": {},
+        "x": 1080,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "729d1d56.f6fe54",
+        "type": "watson-tone-analyzer-v3",
+        "z": "dae1619b.1d9c6",
+        "name": "",
+        "tones": "all",
+        "sentences": "true",
+        "contentType": "false",
+        "tone-method": "generalTone",
+        "interface-version": "2017-09-21",
+        "inputlang": "en",
+        "default-endpoint": false,
+        "service-endpoint": "https://gateway-lon.watsonplatform.net/tone-analyzer/api",
+        "x": 620,
+        "y": 120,
+        "wires": [
+            [
+                "892a6fc5.54b37"
+            ]
+        ]
+    },
+    {
+        "id": "526cb8e1.9261d8",
+        "type": "http response",
+        "z": "dae1619b.1d9c6",
+        "name": "Send Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 660,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "6197fe83.6afeb",
+        "type": "template",
+        "z": "dae1619b.1d9c6",
+        "name": "Prepare HTML Markup",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <title>Tone Analyzer</title>\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"https://unpkg.com/carbon-components/css/carbon-components.min.css\" />\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\">\n\n    <style type=\"text/css\">\n    </style>\n  </head>\n  <body>\n    <div id='header'>\n        <h1>Tone Analyzer</h1>\n        <h3>Instructions</h3>\n        <ol class=\"bx--list--unordered\">\n            <li class=\"bx--list__item\">Copy or enter text to analyze</li>\n            <li class=\"bx--list__item\">Run analysis</li>\n        </ol>\n    </div>\n    <br></br>    \n    <button id=\"button\" class=\"bx--btn bx--btn--primary\" type=\"button\">\n        Analyze tone\n    </button>\n    <div class=\"main flex\">\n        <div class=\"layout_3\">\n          <h3>Sample Text</h3>\n          <div class=\"bx--form-item\">\n            <label for=\"text-area\" class=\"bx--label\">Input Text</label>\n            <div class=\"bx--form__helper-text\">\n              Add (English) to analyze tone for.\n            </div>\n             <div class=\"bx--text-area__wrapper\">\n              <textarea id=\"text-area\" class=\"bx--text-area bx--text-area--v2\" rows=\"4\" cols=\"50\"></textarea>\n            </div>\n          </div>\n        </div>\n        <div class=\"layout_3\">\n          <h3>Result</h3>\n          <pre id=\"result-container\" class=\"code_snippet\"></pre>\n        </div>\n\n    </div>\n\n    <script>\n      function displayResult(data) {\n        document.getElementById(\"result-container\").innerHTML = `${data}`;\n      }\n\n      function startAnalysis(data) {\n        return fetch(`/api/tone-analyzer`, {\n          method: \"POST\",\n          body: JSON.stringify({ text: data }),\n          headers: {\n            \"Content-Type\": \"application/json\"\n          }\n        })\n          .then(response => response.json())\n          .then(responseJson => {\n            displayResult(`<pre>${JSON.stringify(responseJson, null, 4)}</pre>`);\n          })\n          .catch(error => {\n            displayResult(\"Failed to analyze\");\n            console.error(\"Error:\", error);\n          });\n      }\n\n      // register click handlers\n      document.getElementById(\"button\").onclick = function() {\n        startAnalysis(document.getElementById(\"text-area\").value);\n      };\n    </script>\n  </body>\n</html>\n",
+        "output": "str",
+        "x": 413,
+        "y": 60,
+        "wires": [
+            [
+                "526cb8e1.9261d8"
+            ]
+        ]
+    },
+    {
+        "id": "ec8dedbf.00d68",
+        "type": "http in",
+        "z": "dae1619b.1d9c6",
+        "name": "",
+        "url": "/ui/tone-analyzer",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 136,
+        "y": 60,
+        "wires": [
+            [
+                "6197fe83.6afeb"
+            ]
+        ]
+    },
+    {
+        "id": "666eb3d7.835dfc",
+        "type": "watson-translator",
+        "z": "afb7a1b0.4655a",
+        "name": "",
+        "action": "translate",
+        "basemodel": "en-tr",
+        "domain": "general",
+        "srclang": "de",
+        "destlang": "en",
+        "password": "",
+        "apikey": "1LP1gHMbkiqreQyx-Zsgo1VZSuqR3VHTBsMXRNmAsHnY",
+        "custom": "",
+        "domainhidden": "general",
+        "srclanghidden": "de",
+        "destlanghidden": "en",
+        "basemodelhidden": "",
+        "customhidden": "",
+        "filetype": "forcedglossary",
+        "trainid": "",
+        "lgparams2": true,
+        "neural": false,
+        "default-endpoint": false,
+        "service-endpoint": "https://gateway-fra.watsonplatform.net/language-translator/api",
+        "x": 630,
+        "y": 120,
+        "wires": [
+            [
+                "7ce9dfe8.971a4"
+            ]
+        ]
+    },
+    {
+        "id": "733191c.98d117",
+        "type": "http in",
+        "z": "afb7a1b0.4655a",
+        "name": "",
+        "url": "/api/translator",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 118.5,
+        "y": 121,
+        "wires": [
+            [
+                "ab7dc594.954218"
+            ]
+        ]
+    },
+    {
+        "id": "ab7dc594.954218",
+        "type": "function",
+        "z": "afb7a1b0.4655a",
+        "name": "Prepare Request",
+        "func": "msg.payload = msg.req.body.text;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 393,
+        "y": 121,
+        "wires": [
+            [
+                "666eb3d7.835dfc"
+            ]
+        ]
+    },
+    {
+        "id": "dbb8f44.dc4ff08",
+        "type": "http response",
+        "z": "afb7a1b0.4655a",
+        "name": "Send Response",
+        "statusCode": "200",
+        "headers": {},
+        "x": 1048.5,
+        "y": 121,
+        "wires": []
+    },
+    {
+        "id": "6bc15f9a.a2caf",
+        "type": "http response",
+        "z": "afb7a1b0.4655a",
+        "name": "Send Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 652.5,
+        "y": 55,
+        "wires": []
+    },
+    {
+        "id": "5a663478.df48cc",
+        "type": "template",
+        "z": "afb7a1b0.4655a",
+        "name": "Prepare HTML Markup",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <title>Translator</title>\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"https://unpkg.com/carbon-components/css/carbon-components.min.css\" />\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\">\n\n    <style type=\"text/css\">\n    </style>\n  </head>\n  <body>\n    <div id='header'>\n        <h1>Translator</h1>\n        <h3>Instructions</h3>\n        <ol class=\"bx--list--unordered\">\n            <li class=\"bx--list__item\">Copy or enter text to translate</li>\n            <li class=\"bx--list__item\">Click \"Translate text\"</li>\n        </ol>\n    </div>\n    <br></br>        \n      <button id=\"button\" class=\"bx--btn bx--btn--primary\" type=\"button\">\n        Translate text\n      </button>\n    <div class=\"flex\">\n      <div class=\"layout_3\">\n         <h3>Sample Text</h3>\n\n          <div class=\"bx--form-item\">\n            <label for=\"text-area\" class=\"bx--label\">Input Text</label>\n            <div class=\"bx--form__helper-text\">\n              Add text (German) to translate into English.\n            </div>\n            <div class=\"bx--text-area__wrapper\">\n              <textarea id=\"text-area\" class=\"bx--text-area bx--text-area--v2\" rows=\"4\" cols=\"50\"></textarea>\n            </div>\n          </div>\n      </div>\n      <div class=\"layout_3\">\n         <h3>Result</h3>\n         <div>\n             <pre id=\"result-container\" class=\"code_snippet\"></pre>\n         </div>\n      </div>\n    </div>\n\n    <script>\n      function displayResult(data) {\n        document.getElementById(\"result-container\").innerHTML = `${data}`;\n      }\n\n      function startAnalysis(data) {\n        return fetch(`/api/translator`, {\n          method: \"POST\",\n          body: JSON.stringify({ text: data }),\n          headers: {\n            \"Content-Type\": \"application/json\"\n          }\n        })\n          .then(response => response.json())\n          .then(responseJson => {\n            displayResult(`<pre>${JSON.stringify(responseJson, null, 4)}</pre>`);\n          })\n          .catch(error => {\n            displayResult(\"Failed to analyze\");\n            console.error(\"Error:\", error);\n          });\n      }\n\n      // register click handlers\n      document.getElementById(\"button\").onclick = function() {\n        startAnalysis(document.getElementById(\"text-area\").value);\n      };\n    </script>\n  </body>\n</html>\n",
+        "output": "str",
+        "x": 405.5,
+        "y": 55,
+        "wires": [
+            [
+                "6bc15f9a.a2caf"
+            ]
+        ]
+    },
+    {
+        "id": "d285adc6.73381",
+        "type": "http in",
+        "z": "afb7a1b0.4655a",
+        "name": "",
+        "url": "/ui/translator",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 108.5,
+        "y": 55,
+        "wires": [
+            [
+                "5a663478.df48cc"
+            ]
+        ]
+    },
+    {
+        "id": "7ce9dfe8.971a4",
+        "type": "function",
+        "z": "afb7a1b0.4655a",
+        "name": "Prepare Response",
+        "func": "msg.payload = msg.translation;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 842.5,
+        "y": 121,
+        "wires": [
+            [
+                "dbb8f44.dc4ff08"
+            ]
+        ]
+    },
+    {
+        "id": "63935edb.821db",
+        "type": "inject",
+        "z": "b530ae1c.57e2d",
+        "name": "Update Configuration",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 180,
+        "y": 80,
+        "wires": [
+            [
+                "522e76f4.eacf18",
+                "959ae148.ba087"
+            ]
+        ]
+    },
+    {
+        "id": "522e76f4.eacf18",
+        "type": "change",
+        "z": "b530ae1c.57e2d",
+        "name": "Update",
+        "rules": [
+            {
+                "t": "set",
+                "p": "DIGIT_RECOGNIZER_CONFIG",
+                "pt": "global",
+                "to": "{\"apiKey\":\"\",\"instanceId\":\"\",\"deploymentEndpointUrl\":\"\"}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "959ae148.ba087",
+        "type": "debug",
+        "z": "b530ae1c.57e2d",
+        "name": "Log",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "\"Updated configuration\"",
+        "targetType": "jsonata",
+        "x": 390,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "a3561315.e5ca4",
+        "type": "http in",
+        "z": "b530ae1c.57e2d",
+        "name": "",
+        "url": "/ui/styles.css",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 240,
+        "wires": [
+            [
+                "858a5a89.212448"
+            ]
+        ]
+    },
+    {
+        "id": "858a5a89.212448",
+        "type": "template",
+        "z": "b530ae1c.57e2d",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "css",
+        "syntax": "mustache",
+        "template": "body {\n    margin: 2em;\n}\n\nh3 {\n    margin-top: 1em;\n}\n\n\n.flex {\n    display: flex;\n    flex-wrap: wrap;\n}\n\n.layout_3 {\n    width: 33%;\n}\n\n.code_snippet {\n    background-color: rgb(244, 244, 244);\n    width: 80%;\n    height: 300px;\n    overflow-y: scroll;\n    padding: 1em;\n    font-family: monospace;\n    font-size: 1.2em;\n}",
+        "output": "str",
+        "x": 340,
+        "y": 240,
+        "wires": [
+            [
+                "3248c941.eca8c6"
+            ]
+        ]
+    },
+    {
+        "id": "174da264.0ca3be",
+        "type": "http response",
+        "z": "b530ae1c.57e2d",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 650,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "3248c941.eca8c6",
+        "type": "function",
+        "z": "b530ae1c.57e2d",
+        "name": "text/css",
+        "func": "msg.headers = {\n    \"Content-Type\": \"text/css\"\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 500,
+        "y": 240,
+        "wires": [
+            [
+                "174da264.0ca3be"
+            ]
+        ]
+    }
+]
