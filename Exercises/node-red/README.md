@@ -91,3 +91,6 @@ This example makes use of the [Watson Language Translator](https://www.ibm.com/w
 ![](./screenshots/19.png)
 
 Check the [API documentation](https://cloud.ibm.com/apidocs/language-translator) for details about the response format.
+
+### Next Steps
+Next, try to experiment on your own to prepare for working on your use-cases. If you need some inspiration, check out https://flows.nodered.org/ and review existing nodes (or flows) that make it easy to integrate various devices and APIs.
